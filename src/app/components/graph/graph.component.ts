@@ -1,7 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import * as Highcharts from "highcharts";
 import { DataService } from "src/app/services/data.service";
-import "../../../assets/mock/mockData.json";
 import Networkgraph from "highcharts/modules/networkgraph";
 
 Networkgraph(Highcharts);
@@ -12,42 +11,86 @@ Networkgraph(Highcharts);
   styleUrls: ["./graph.component.scss"],
 })
 export class GraphComponent implements OnInit {
-  public options: any = {
+  // tslint:disable-next-line: variable-name
+  private _networkGraphOptions: any = {
     chart: {
       type: "networkgraph",
-      height: "100%",
+      height: "800px",
     },
     title: {
       text: "Graph Demo",
     },
+    credits: { enabled: false },
     plotOptions: {
       networkgraph: {
         keys: ["from", "to"],
         layoutAlgorithm: {
-          enableSimulation: false,
+          // enableSimulation: true,
           integration: "verlet",
+          // linkLength: 15,
+          // friction: -0.9,
+        },
+        link: {
+          // width: 50,
         },
       },
     },
     series: [
       {
+        id: "graph-demo",
         marker: {
-          radius: 13,
+          radius: 10,
         },
+
         dataLabels: {
           enabled: true,
-          linkFormat: "",
-          allowOverlap: true,
+          // linkFormat: "Source: {point.fromNode.name}",
+          linkFormatter(link) {
+            // console.log(this.point.fromNode.plotX);
+            if (this.point.fromNode.plotX > this.point.toNode.plotX) {
+              return "\u2190";
+            }
+            return "\u2192";
+          },
+          allowOverlap: false,
         },
       },
     ],
   };
+  public get networkGraphOptions() {
+    return this._networkGraphOptions;
+  }
   constructor(private dataService: DataService) {}
 
+  updateNetworkGraphData(data) {
+    this._networkGraphOptions.series[0].data = data;
+    this._networkGraphOptions = { ...this._networkGraphOptions };
+  }
+
   ngOnInit() {
-    this.dataService.getData().subscribe((data) => {
-      this.options.series[0].data = data;
-      Highcharts.chart("container", this.options);
+    this.dataService.getDataLinks().subscribe((data) => {
+      this.updateNetworkGraphData(data);
+      // setTimeout(() => {
+      //   this.updateNetworkGraphData([
+      //     { from: "A", to: "B" },
+      //     { from: "B", to: "C" },
+      //   ]);
+      // }, 2000);
     });
+  }
+  searchNodeByLabel(e) {
+    if (e.keyCode === 13) {
+      if (!e.target.value) {
+        this.dataService.getDataLinks().subscribe((data) => {
+          this.updateNetworkGraphData(data);
+        });
+      } else {
+        this.dataService
+          .searchDataLinksByLabel(e.target.value)
+          .subscribe((data) => {
+            this.updateNetworkGraphData(data);
+          });
+      }
+    }
   }
 }
