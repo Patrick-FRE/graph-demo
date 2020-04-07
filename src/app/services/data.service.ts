@@ -55,18 +55,6 @@ export class DataService {
     const id = nodesMap[label];
     console.log(label, id);
 
-    // get the current edge queue
-    // edgeQueue = edges.reduce((acc, cur) => {
-    //   if (cur.target === id || cur.source === id) {
-    //     res.push(cur);
-    //     acc.push(cur);
-    //   }
-    //   return acc;
-    // }, []);
-    // console.log(edgeQueue);
-
-    // while (edgeQueue.length > 0) {}
-
     findNextSourceNodes(res, [id], edges);
     findNextTargetNodes(res, [id], edges);
 
@@ -105,8 +93,6 @@ export class DataService {
         findNextSourceNodes(res, nextTargetIdArray, edges);
       });
     }
-    // while (lastTarget === false || lastSource === false) {}
-    console.log(res);
     return res;
   }
 
